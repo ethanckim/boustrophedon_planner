@@ -3,8 +3,8 @@
         <param name="repeat_boundary" value="false"/>
         <param name="outline_clockwise" value="true"/>
         <param name="skip_outlines" value="true"/>
-        <param name="outline_layer_count" value="0"/>
-        <param name="stripe_separation" value="1.0"/>
+        <param name="outline_layer_count" value="1"/>
+        <param name="stripe_separation" value="0.5"/>
         <param name="intermediary_separation" value="0.0"/>
         <param name="stripe_angle" value="0.0"/>
         <param name="enable_stripe_angle_orientation" value="true" />

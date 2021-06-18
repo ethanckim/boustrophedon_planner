@@ -2,6 +2,8 @@
 
 #include "boustrophedon_server/boustrophedon_planner_server.h"
 
+#include <cstdlib>
+
 BoustrophedonPlannerServer::BoustrophedonPlannerServer()
   : private_node_handle_("~")
   , action_server_(node_handle_, "plan_path", boost::bind(&BoustrophedonPlannerServer::executePlanPathAction, this, _1),
@@ -210,18 +212,33 @@ bool BoustrophedonPlannerServer::convertStripingPlanToPath(boustrophedon_msgs::C
   response.path.header.frame_id = request.plan.header.frame_id;
   response.path.header.stamp = request.plan.header.stamp;
 
-  std::transform(request.plan.points.begin(), request.plan.points.end(), response.path.poses.begin(),
-                 [&](const boustrophedon_msgs::StripingPoint& point) {
-                   geometry_msgs::PoseStamped pose;
-                   pose.header.frame_id = request.plan.header.frame_id;
-                   pose.header.stamp = request.plan.header.stamp;
-                   pose.pose.position = point.point;
-                   pose.pose.orientation.x = 0.0;
-                   pose.pose.orientation.y = 0.0;
-                   pose.pose.orientation.z = 0.0;
-                   pose.pose.orientation.w = 1.0;
-                   return pose;
-                 });
+  request.plan.points;
+  response.path.poses;
+
+  for (boustrophedon_msgs::StripingPoint point : request.plan.points) {
+    geometry_msgs::PoseStamped pose;
+    pose.header.frame_id = request.plan.header.frame_id;
+    pose.header.stamp = request.plan.header.stamp;
+    pose.pose.position = point.point;
+    pose.pose.orientation.x = 0.0;
+    pose.pose.orientation.y = 0.0;
+    pose.pose.orientation.z = 0.0;
+    pose.pose.orientation.w = 1.0;
+    response.path.poses.push_back(pose);
+  }
+  // Legacy Code:
+  // std::transform(request.plan.points.begin(), request.plan.points.end(), response.path.poses.begin(),
+  //                [&](const boustrophedon_msgs::StripingPoint& point) {
+  //                  geometry_msgs::PoseStamped pose;
+  //                  pose.header.frame_id = request.plan.header.frame_id;
+  //                  pose.header.stamp = request.plan.header.stamp;
+  //                  pose.pose.position = point.point;
+  //                  pose.pose.orientation.x = 0.0;
+  //                  pose.pose.orientation.y = 0.0;
+  //                  pose.pose.orientation.z = 0.0;
+  //                  pose.pose.orientation.w = 1.0;
+  //                  return pose;
+  //                });
   return true;
 }
 
@@ -268,6 +285,7 @@ void BoustrophedonPlannerServer::publishPathPoints(const std::vector<NavPoint>& 
   {
     geometry_msgs::PointStamped stripe_point{};
     stripe_point.header.stamp = ros::Time::now();
+    stripe_point.header.frame_id = "map";
     stripe_point.point.x = point.point.x();
     stripe_point.point.y = point.point.y();
     path_points_publisher_.publish(stripe_point);
@@ -282,6 +300,7 @@ void BoustrophedonPlannerServer::publishPolygonPoints(const Polygon& poly) const
   {
     geometry_msgs::PointStamped point;
     point.header.stamp = ros::Time::now();
+    point.header.frame_id = "map";
     point.point.x = float(it->x());
     point.point.y = float(it->y());
     point.point.z = float(0.0);
